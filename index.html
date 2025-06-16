@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Пропущенные паллеты</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: auto; }
+        textarea { width: 100%; height: 120px; margin-bottom: 10px; font-family: monospace; }
+        button { padding: 10px 20px; font-size: 16px; margin-bottom: 20px; }
+        .result { white-space: pre-wrap; font-family: monospace; }
+        .missing { color: red; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h2>Пропущенные паллеты (по последним 4 цифрам)</h2>
+
+    <label>1C штрихкоды (каждый с новой строки):</label>
+    <textarea id="expected"></textarea>
+
+    <label>Телега штрихкоды (каждый с новой строки):</label>
+    <textarea id="scanned"></textarea>
+
+    <button onclick="findMissing()">Показать пропущенные</button>
+
+    <h3>Не считанные коды:</h3>
+    <div id="result" class="result"></div>
+
+    <script>
+        function findMissing() {
+            const expectedRaw = document.getElementById('expected').value.trim();
+            const scannedRaw = document.getElementById('scanned').value.trim();
+
+            const expected = expectedRaw.split('\n').map(s => s.trim()).filter(s => s);
+            const scanned = scannedRaw.split('\n').map(s => s.trim()).filter(s => s);
+
+            const scannedLast4 = scanned.map(code => code.slice(-4));
+
+            let output = '';
+            let count = 0;
+
+            for (const code of expected) {
+                const last4 = code.slice(-4);
+                if (!scannedLast4.includes(last4)) {
+                    output += `<span class="missing">${code}</span>\n`;
+                    count++;
+                }
+            }
+
+            if (count === 0) {
+                output = "✅ Все паллеты были считаны!";
+            }
+
+            document.getElementById('result').innerHTML = output;
+        }
+    </script>
+
+</body>
+</html>
