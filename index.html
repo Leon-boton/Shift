@@ -104,30 +104,49 @@
             const expectedRaw = document.getElementById('expected').value.trim();
             const scannedRaw = document.getElementById('scanned').value.trim();
 
-            const expected = expectedRaw.split('\n').map(s => s.trim()).filter(s => s);
-            const scanned = scannedRaw.split('\n').map(s => s.trim()).filter(s => s);
+            const expected = expectedRaw.split('\n').map(s => s.trim()).filter(Boolean);
+            const scanned = scannedRaw.split('\n').map(s => s.trim()).filter(Boolean);
 
+            const expectedLast4 = expected.map(code => code.replace(/^0+/, '').slice(-4));
             const scannedLast4 = scanned.map(code => code.replace(/^0+/, '').slice(-4));
 
-            let output = '';
-            let count = 0;
+            let missingOutput = '';
+            let extraOutput = '';
+            let missingCount = 0;
+            let extraCount = 0;
 
-            for (let i = 0; i < expected.length; i++) {
-                const code = expected[i];
-                const normalizedLast4 = code.replace(/^0+/, '').slice(-4);
+            // Проверка пропущенных
+            expected.forEach((code, i) => {
+                const last4 = code.replace(/^0+/, '').slice(-4);
                 const palletNumber = i + 1;
-
-                if (!scannedLast4.includes(normalizedLast4)) {
-                    output += `<span class="missing">❌ Поддон №${palletNumber}: ${code}</span>\n`;
-                    count++;
+                if (!scannedLast4.includes(last4)) {
+                    missingOutput += `<span class="missing">❌ Поддон №${palletNumber}: ${code}</span>\n`;
+                    missingCount++;
                 }
+            });
+
+            // Проверка лишних
+            scanned.forEach(code => {
+                const last4 = code.replace(/^0+/, '').slice(-4);
+                if (!expectedLast4.includes(last4)) {
+                    extraOutput += `<span class="extra">⚠️ Лишний скан: ${code}</span>\n`;
+                    extraCount++;
+                }
+            });
+
+            // Финальный вывод
+            let result = '';
+            if (missingCount === 0) {
+                result += `<span class="success">✅ Все паллеты были считаны!</span>\n`;
+            } else {
+                result += `\n<strong>🔻 Пропущенные паллеты:</strong>\n${missingOutput}`;
             }
 
-            if (count === 0) {
-                output = `<span class="success">✅ Все паллеты были считаны!</span>`;
+            if (extraCount > 0) {
+                result += `\n<strong>🟡 Лишние сканы:</strong>\n${extraOutput}`;
             }
 
-            document.getElementById('result').innerHTML = output;
+            document.getElementById('result').innerHTML = result;
         }
     </script>
 
